@@ -13,3 +13,5 @@ export const buildToken = (user) =>
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
+
+export const verifyToken = (token) => jwt.verify(token, JWT_SECRET);
