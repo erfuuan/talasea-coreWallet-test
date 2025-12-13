@@ -1,7 +1,6 @@
 import Joi from "joi";
-const schema = Joi.object({
-  phone: Joi.string().length(11),
-  password: Joi.string().min(8).required(),
-})
 
+const schema = Joi.object({
+  amount: Joi.number().required()
+})
 export default { schema }

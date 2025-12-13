@@ -1,3 +1,6 @@
-export { validateSignup } from "./signup.js";
-export { validateLogin } from "./login.js";
-export { validateUpdateProfile } from "./profile.js";
+import signup from "./signup.js"
+import login from "./login.js"
+import profile from "./profile.js"
+import wallet from "./wallet.js"
+import asset from "./asset.js"
+export default {  signup, login, profile, wallet, asset }

@@ -1,31 +1,43 @@
 #!/usr/bin/env node
 import express from "express";
-import mongoose from "mongoose";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
+import cors from "cors";
 import routes from "./routers/index.js";
+import responseBuilder from "./utils/responseBuilder.js";
+import mongodb from "./connections/mongodb.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/talasea-corewallet";
-
 app.use(helmet());
+app.use(cors());
 app.use(morgan("dev"));
 app.use(compression());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.get("/health", (req, res) => {
-  res.send("healthy");
+  responseBuilder.success(res, { status: "healthy" });
 });
 
-app.use("/api/v1/", routes);
+app.use("/api/v1", routes);
 
+app.use((req, res, next) => {
+  responseBuilder.notFound(res, null, "Not Found");
+});
+
+// --- Global Error Handler --- //
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  responseBuilder.internalErr(res,  "Internal Server Error");
+});
+
+// --- Start Server --- //
 const start = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log("Connected to MongoDB");
+    await mongodb.connect();
 
     app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);

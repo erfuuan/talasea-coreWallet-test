@@ -1,11 +1,15 @@
 import express from "express";
 import authRouter from "./auth.js";
 import profileRouter from "./profile.js";
-import authMiddleware from "../middlewares/auth.js";
+import middlewares from "../middlewares/index.js";
+import walletRouter from "./wallet.js"
+import assetRouter from "./asset.js"
+import transactionRouter from "./transaction.js"
 const router = express.Router();
 
 router.use("/auth", authRouter);
-router.use("/profile",authMiddleware, profileRouter);
-// router.use("/asset", assetRouter);
-// router.use("/transaction", transactionRouter);
+router.use("/profile",middlewares.auth, profileRouter);
+router.use("/wallet", middlewares.auth, middlewares.idempotency, walletRouter);
+router.use("/asset", middlewares.auth, middlewares.idempotency, assetRouter);
+router.use("/transaction", middlewares.auth, middlewares.idempotency, transactionRouter);
 export default router;

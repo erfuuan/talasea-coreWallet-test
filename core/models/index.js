@@ -1,9 +1,13 @@
-import user from "./users.js";
+import User from "./users.js";
 import asset from "./asset.js";
 import transaction from "./transaction.js";
-
+import wallet from "./wallet.js";
 export default {
-  user,
+  User,
   asset,
-  transaction
+  transaction,
+  wallet
 }
+
+
+

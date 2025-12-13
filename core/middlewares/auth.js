@@ -2,7 +2,7 @@ import responseBuilder from "../utils/responseBuilder.js";
 import { verifyToken } from "../utils/tokenGenerator.js";
 
 const authMiddleware = (req, res, next) => {
-  try {
+ try {
     const header = req.headers.authorization || "";
     const [scheme, token] = header.split(" ");
 
@@ -11,7 +11,6 @@ const authMiddleware = (req, res, next) => {
     }
 
     const payload = verifyToken(token);
-
     req.user = {
       id: payload.sub,
       email: payload.email,
@@ -20,9 +19,11 @@ const authMiddleware = (req, res, next) => {
 
     return next();
   } catch (err) {
+    if (err.code === "TOKEN_EXPIRED") {
+      return responseBuilder.unauthorized(res, null, "Token expired"); // ۴۰۱
+    }
     console.error("Auth middleware error:", err);
-    return responseBuilder.internalErr(res, null, "Invalid or expired token");
+    return responseBuilder.internalErr(res, null, "Invalid or expired token"); // ۵۰۰ فقط برای بقیه خطاها
   }
 };
-
 export default authMiddleware;

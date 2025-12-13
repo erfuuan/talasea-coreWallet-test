@@ -1,16 +1,50 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
+const TransactionSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Types.ObjectId,
+    ref: "User",
+    index: true,
+    required: true,
+  },
 
-const transactionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   type: {
     type: String,
-    enum: ['charge', 'payment', 'buy_gold', 'sell_gold'], 
-    required: true
+    enum: [
+      "DEPOSIT",
+      "WITHDRAW",
+      "BUY_GOLD",
+      "SELL_GOLD"
+    ],
+    required: true,
   },
-  amount: { type: Number, required: true },
-  metadata: { type: Object },
-  status: { type: String, enum: ['pending','success','failed'], default: 'pending' },
-  createdAt: { type: Date, default: Date.now }
+
+  status: {
+    type: String,
+    enum: ["PENDING", "SUCCESS", "FAILED"],
+    default: "PENDING",
+    index: true,
+  },
+
+
+  amount: {
+    type: Number,
+    required: true,
+  },
+
+  refId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
+
+  meta: {
+    type: Object,
+    required: true,
+  },
+
+}, {
+  timestamps: true
 });
 
-export default mongoose.model('Transaction', transactionSchema);
+export default mongoose.model("Transaction", TransactionSchema);

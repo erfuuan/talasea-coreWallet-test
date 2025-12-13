@@ -2,13 +2,6 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-    },
-
     firstName: {
       type: String,
       trim: true,
@@ -50,12 +43,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-
-    wallet:{
-      type:Number,
-      default:0
-    }
-
   },
   { timestamps: true }
 );
