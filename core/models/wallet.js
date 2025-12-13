@@ -13,6 +13,7 @@ const WalletSchema = new mongoose.Schema({
     required: true,
     default: 0,
     min: 0,
+    
   },
 
   lockedBalance: {

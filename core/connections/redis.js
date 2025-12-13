@@ -9,12 +9,12 @@ const redisServer = new Redis({
 
 
 redisServer.on('connect', () => {
-  console.log('✔  [success] redis connected successfully');
+  console.log(chalk.green('✔  [success] redis connected successfully'));
 })
 
 // Log Redis 
 redisServer.on('error', (error) => {
-  console.log(chalk.red(`Redis Client error ${error}`));
+  console.log(chalk.red(`✗  [error] Redis Client error: ${error}`));
 });
 
 export { redisServer };

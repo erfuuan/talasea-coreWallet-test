@@ -7,9 +7,10 @@ import cors from "cors";
 import routes from "./routers/index.js";
 import responseBuilder from "./utils/responseBuilder.js";
 import mongodb from "./connections/mongodb.js";
-
+import chalk from "chalk";
+import config from "./config/application.js";
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 app.use(helmet());
 app.use(cors());
 app.use(morgan("dev"));
@@ -40,7 +41,7 @@ const start = async () => {
     await mongodb.connect();
 
     app.listen(PORT, () => {
-      console.log(`Server listening on port ${PORT}`);
+      console.log(chalk.green(`Server listening on port ${PORT}`));
     });
   } catch (err) {
     console.error("Failed to start server:", err);

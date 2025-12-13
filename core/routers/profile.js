@@ -8,3 +8,4 @@ router.get("/", controller.profile.getProfile);
 router.put("/",  controller.profile.updateProfile);
 
 export default router;
+
