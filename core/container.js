@@ -42,6 +42,7 @@ export const container = {
     AssetModel,
     WalletModel,
     TransactionModel,
+    ProductModel,
     mongoService,
     redisLockService: redisManager.getService(RedisDB.LOCK),
     idempotencyService: redisManager.getService(RedisDB.IDEMPOTENCY),

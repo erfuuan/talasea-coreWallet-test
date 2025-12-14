@@ -20,19 +20,19 @@ export default class AssetController {
 
   async buyAsset(req, res, next) {
     try {
-      const { type, grams, pricePerUnit, karat } = req.body;
+      const { productId, grams } = req.body;
       const idempotencyKey = req.idempotencyKey || null;
 
       const updatedAsset = await this.assetService.buyAsset(
         req.user.id,
-        { type, grams, pricePerUnit, karat },
+         productId, grams ,
         idempotencyKey
       );
 
       return responseBuilder.success(
         res,
         updatedAsset,
-        `${type} purchased successfully`
+        "asset purchased successfully"
       );
     } catch (err) {
       return next(err);
@@ -41,19 +41,19 @@ export default class AssetController {
 
   async sellAsset(req, res, next) {
     try {
-      const { type, grams, pricePerUnit, karat } = req.body;
+      const { productId, grams } = req.body;
       const idempotencyKey = req.idempotencyKey || null;
 
       const updatedAsset = await this.assetService.sellAsset(
         req.user.id,
-        { type, grams, pricePerUnit, karat },
+        productId, grams ,
         idempotencyKey
       );
 
       return responseBuilder.success(
         res,
         updatedAsset,
-        `${type} sold successfully`
+        "asset sold successfully"
       );
     } catch (err) {
       return next(err);

@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 /**
  * @swagger
- * /health:
+ * /api/v1/health:
  *   get:
  *     summary: Health check endpoint
  *     description: Returns the health status of the API server
@@ -53,7 +53,7 @@ app.use(express.urlencoded({ extended: true }));
  *                       type: string
  *                       example: "healthy"
  */
-app.get("/health", (req, res) => {
+app.get("/api/v1/health", (req, res) => {
   responseBuilder.success(res, { status: "healthy" });
 });
 

@@ -6,17 +6,17 @@ const schema = Joi.object({
     .length(24) // Mongo ObjectId
     .required()
     .messages({
-      "string.base": "ProductId must be a string",
-      "string.length": "ProductId must be 24 characters long",
-      "any.required": "ProductId is required",
+      "string.base": "productId must be a string",
+      "string.length": "productId must be 24 characters long",
+      "any.required": "productId is required",
     }),
   grams: Joi.number()
     .positive()
     .required()
     .messages({
-      "number.base": "Grams must be a number",
-      "number.positive": "Grams must be positive",
-      "any.required": "Grams is required",
+      "number.base": "grams must be a number",
+      "number.positive": "grams must be positive",
+      "any.required": "grams is required",
     }),
 });
 

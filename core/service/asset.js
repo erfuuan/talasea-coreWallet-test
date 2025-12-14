@@ -10,6 +10,7 @@ export default class AssetService {
     AssetModel,
     WalletModel,
     TransactionModel,
+    ProductModel,
     mongoService,
     redisLockService,
     idempotencyService,
@@ -17,6 +18,7 @@ export default class AssetService {
     if (!AssetModel) throw new Error('AssetModel is required');
     if (!WalletModel) throw new Error('WalletModel is required');
     if (!TransactionModel) throw new Error('TransactionModel is required');
+    if (!ProductModel) throw new Error('ProductModel is required');
     if (!mongoService) throw new Error('mongoService is required');
     if (!redisLockService) throw new Error('redisLockService is required');
     if (!idempotencyService) throw new Error('idempotencyService is required');
@@ -24,6 +26,7 @@ export default class AssetService {
     this.Asset = AssetModel;
     this.Wallet = WalletModel;
     this.Transaction = TransactionModel;
+    this.Product = ProductModel;
     this.mongoService = mongoService;
     this.redisLockService = redisLockService;
     this.idempotencyService = idempotencyService;
@@ -42,7 +45,7 @@ export default class AssetService {
     return asset;
   }
 
-  async buyAsset(userId, { productId, grams }, idempotencyKey) {
+  async buyAsset(userId, productId, grams, idempotencyKey) {
     if (grams <= 0) throw new BadRequestError("Grams must be positive");
   
     let session, lockKey, lockToken;
@@ -76,6 +79,7 @@ export default class AssetService {
         { _id: productId },
         { session }
       );
+  
       if (!product || !product.isActive) throw new BadRequestError("Product not available");
   
       const totalPrice = grams * product.buyPrice;
@@ -117,7 +121,7 @@ export default class AssetService {
       if (!updatedAsset) throw new ConflictError("Asset updated by another process");
   
       // 9️⃣ Create transaction
-      const tx = await this.mongoService.create(
+      await this.mongoService.create(
         this.Transaction,
         {
           userId,
@@ -161,7 +165,7 @@ export default class AssetService {
   }
   
 
-  async sellAsset(userId, { productId, grams }, idempotencyKey) {
+  async sellAsset(userId, productId, grams, idempotencyKey) {
     if (grams <= 0) throw new BadRequestError("Grams must be positive");
   
     let session, lockKey, lockToken;
