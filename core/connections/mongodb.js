@@ -1,73 +1,72 @@
 import mongoose from "mongoose";
-import chalk from "chalk";
+import logger from "../utils/Logger.js";
+
+mongoose.set("strictQuery", true);
 
 const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/talasea-corewallet?replicaSet=rs0";
+  process.env.MONGO_URI ||
+  "mongodb://127.0.0.1:27017/talasea-corewallet?replicaSet=rs0";
 
-// Connection options for Mongoose 8.x
 const connectionOptions = {
-  maxPoolSize: 10, // Maintain up to 10 socket connections
-  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  maxPoolSize: 20,
+  minPoolSize: 5,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  retryWrites: true,
+  writeConcern: {
+    w: "majority",
+    j: true,
+  },
 };
 
-// Connection event handlers
+
+// Graceful shutdown
+const shutdown = async () => {
+  await mongoose.connection.close();
+  logger.info("MongoDB connection closed");
+  process.exit(0);
+};
+
+
+// Events
 mongoose.connection.on("connected", () => {
-  console.log(chalk.green("✔  [success] MongoDB connected successfully"));
+  logger.info("MongoDB connected");
 });
 
-mongoose.connection.on("error", (error) => {
-  console.log(chalk.red(`✗  [error] MongoDB connection error: ${error.message}`));
+mongoose.connection.on("error", (err) => {
+  logger.error("MongoDB connection error", err);
 });
 
 mongoose.connection.on("disconnected", () => {
-  console.log(chalk.yellow("⚠  [warning] MongoDB disconnected"));
+  logger.warn("MongoDB disconnected");
 });
 
-// Handle process termination
-process.on("SIGINT", async () => {
-  await mongoose.connection.close();
-  console.log(chalk.yellow("MongoDB connection closed due to app termination"));
-  process.exit(0);
-});
 
-process.on("SIGTERM", async () => {
-  await mongoose.connection.close();
-  console.log(chalk.yellow("MongoDB connection closed due to app termination"));
-  process.exit(0);
-});
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 
-// Connect function
 const connect = async () => {
   try {
     await mongoose.connect(MONGO_URI, connectionOptions);
-    return mongoose.connection;
-  } catch (error) {
-    console.error(chalk.red(`✗  [error] Failed to connect to MongoDB: ${error.message}`));
-    throw error;
-  }
-};
 
-// Disconnect function
-const disconnect = async () => {
-  try {
-    await mongoose.connection.close();
-    console.log(chalk.yellow("MongoDB connection closed gracefully"));
-  } catch (error) {
-    console.error(chalk.red(`✗  [error] Error closing MongoDB connection: ${error.message}`));
-    throw error;
-  }
-};
+    // 🔴 Replica Set readiness check
+    const admin = mongoose.connection.db.admin();
+    const status = await admin.command({ replSetGetStatus: 1 });
 
-// Check connection state
-const isConnected = () => {
-  return mongoose.connection.readyState === 1; // 1 = connected
+    if (!status || status.ok !== 1) {
+      throw new Error("Replica set not ready");
+    }
+
+    logger.info("MongoDB replica set ready");
+  } catch (err) {
+    logger.error("MongoDB startup failed", err);
+    throw err;
+  }
 };
 
 export default {
   connect,
-  disconnect,
-  isConnected,
+  disconnect: shutdown,
+  isConnected: () => mongoose.connection.readyState === 1,
   connection: mongoose.connection,
 };
-

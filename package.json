@@ -11,7 +11,11 @@
     "start": "node core/server.js",
     "dev": "node --watch core/server.js",
     "build": "pkg . --out-path dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md}\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -27,6 +31,16 @@
     "mongoose": "^8.5.3",
     "morgan": "^1.10.0",
     "rate-limiter-flexible": "^9.0.1",
-    "uuid": "^13.0.0"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3"
   }
 }

@@ -1,12 +1,15 @@
 import auth from "./auth.js"
 import profile from "./profile.js"
-import wallet from "./wallet.js"
 import asset from "./asset.js"
 import transaction from "./transaction.js"
+import product from "./product.js"
+
+
 export default {
   auth,
   profile,
-  wallet,
+  //  walletController,
   asset,
-  transaction
+  transaction,
+  product
 }

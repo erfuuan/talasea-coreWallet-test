@@ -1,20 +1,21 @@
-import Models from "../models/index.js";
-import responseBuilder from "../utils/responseBuilder.js";
+import responseBuilder from '../utils/responseBuilder.js';
 
-export default {
-  async getTransactions(req, res) {
+export default class TransactionController {
+  constructor({ transactionService }) {
+    if (!transactionService) {
+      throw new Error('transactionService is required');
+    }
+    this.transactionService = transactionService;
+  }
+
+  async getTransactions(req, res, next) {
     try {
-        const transactions = await Models.transaction.find({ userId: req.user.id }).sort({ createdAt: -1 });
-        
+      const transactions = await this.transactionService.getTransactions(
+        req.user.id
+      );
       return responseBuilder.success(res, transactions);
     } catch (err) {
-      console.error("Get profile error:", err);
-      return responseBuilder.internalErr(res);
+      return next(err);
     }
-  },
-
-
-};
-
-
-
+  }
+}

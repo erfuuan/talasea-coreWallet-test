@@ -1,4 +1,5 @@
 import cryptography from "../utils/cryptography.js";
+import logger from "../utils/Logger.js";
 
 class RedisService {
 
@@ -9,27 +10,24 @@ class RedisService {
     this.client = redisClient;
   }
 
-
   async get(key) {
     try {
       return await this.client.get(key);
     } catch (error) {
-      console.error(`Redis GET error for key ${key}:`, error);
+      logger.error(`Redis GET error for key ${key}`, error, { key });
       throw error;
     }
   }
-
 
   async getJSON(key) {
     try {
       const value = await this.get(key);
       return value ? JSON.parse(value) : null;
     } catch (error) {
-      console.error(`Redis GET JSON error for key ${key}:`, error);
+      logger.error(`Redis GET JSON error for key ${key}`, error, { key });
       throw error;
     }
   }
-
 
   async set(key, value, ttl = null) {
     try {
@@ -38,22 +36,20 @@ class RedisService {
       }
       return await this.client.set(key, value);
     } catch (error) {
-      console.error(`Redis SET error for key ${key}:`, error);
+      logger.error(`Redis SET error for key ${key}`, error, { key });
       throw error;
     }
   }
-
 
   async setJSON(key, value, ttl = null) {
     try {
       const jsonValue = JSON.stringify(value);
       return await this.set(key, jsonValue, ttl);
     } catch (error) {
-      console.error(`Redis SET JSON error for key ${key}:`, error);
+      logger.error(`Redis SET JSON error for key ${key}`, error, { key });
       throw error;
     }
   }
-
 
   async delete(key) {
     try {
@@ -62,18 +58,17 @@ class RedisService {
       }
       return await this.client.del(key);
     } catch (error) {
-      console.error(`Redis DELETE error for key ${key}:`, error);
+      logger.error(`Redis DELETE error for key ${key}`, error, { key });
       throw error;
     }
   }
-
 
   async exists(key) {
     try {
       const result = await this.client.exists(key);
       return result === 1;
     } catch (error) {
-      console.error(`Redis EXISTS error for key ${key}:`, error);
+      logger.error(`Redis EXISTS error for key ${key}`, error, { key });
       throw error;
     }
   }
@@ -82,7 +77,7 @@ class RedisService {
     try {
       return await this.client.expire(key, seconds);
     } catch (error) {
-      console.error(`Redis EXPIRE error for key ${key}:`, error);
+      logger.error(`Redis EXPIRE error for key ${key}`, error, { key });
       throw error;
     }
   }
@@ -92,7 +87,7 @@ class RedisService {
     try {
       return await this.client.ttl(key);
     } catch (error) {
-      console.error(`Redis TTL error for key ${key}:`, error);
+      logger.error(`Redis TTL error for key ${key}`, error, { key });
       throw error;
     }
   }
@@ -102,28 +97,12 @@ class RedisService {
     try {
       return await this.client.keys(pattern);
     } catch (error) {
-      console.error(`Redis KEYS error for pattern ${pattern}:`, error);
+      logger.error(`Redis KEYS error for pattern ${pattern}`, error, { pattern });
       throw error;
     }
   }
 
-  async smembers(key) {
-    try {
-      return await this.client.smembers(key);
-    } catch (error) {
-      console.error(`Redis SMEMBERS error for key ${key}:`, error);
-      throw error;
-    }
-  }
 
-  async flushAll(async = false) {
-    try {
-      return await this.client.flushall(async ? "async" : "");
-    } catch (error) {
-      console.error(`Redis FLUSHALL error:`, error);
-      throw error;
-    }
-  }
 
   getStatus() {
     return this.client.status;
@@ -134,7 +113,7 @@ class RedisService {
     try {
       return await this.client.eval(script, numKeys, ...keysAndArgs);
     } catch (error) {
-      console.error(`Redis EVAL error:`, error);
+      logger.error(`Redis EVAL error`, error);
       throw error;
     }
   }
@@ -150,7 +129,7 @@ class RedisService {
       
       return token;
     } catch (error) {
-      console.error(`Redis ACQUIRE LOCK error for key ${key}:`, error);
+      logger.error(`Redis ACQUIRE LOCK error for key ${key}`, error, { key });
       throw error;
     }
   }
@@ -167,7 +146,7 @@ class RedisService {
       
       return await this.eval(luaScript, 1, key, token);
     } catch (error) {
-      console.error(`Redis RELEASE LOCK error for key ${key}:`, error);
+      logger.error(`Redis RELEASE LOCK error for key ${key}`, error, { key });
       throw error;
     }
   }
@@ -176,7 +155,7 @@ class RedisService {
     try {
       return await this.client.ping();
     } catch (error) {
-      console.error(`Redis PING error:`, error);
+      logger.error(`Redis PING error`, error);
       throw error;
     }
   }

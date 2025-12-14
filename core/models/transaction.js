@@ -6,7 +6,7 @@ const TransactionSchema = new mongoose.Schema({
     index: true,
     required: true,
   },
-
+  productId: { type: mongoose.Types.ObjectId, ref: "Product", required: true },
   type: {
     type: String,
     enum: [

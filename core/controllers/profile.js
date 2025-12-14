@@ -1,51 +1,34 @@
-import User from "../models/users.js";
-import responseBuilder from "../utils/responseBuilder.js";
-import ruleValidator from "../validators/index.js";
-import Joi from "joi";
+import responseBuilder from '../utils/responseBuilder.js';
 
-export default {
-  async getProfile(req, res) {
-    try {
-      const user = await User.findById(req.user.id).select("-password -_id")
-      if (!user) {
-        return responseBuilder.notFound(res, null, "User not found");
-      }
-      return responseBuilder.success(res, user);
-    } catch (err) {
-      console.error("Get profile error:", err);
-      return responseBuilder.internalErr(res);
+export default class ProfileController {
+  constructor({ profileService }) {
+    if (!profileService) {
+      throw new Error('profileService is required');
     }
-  },
+    this.profileService = profileService;
+  }
 
-  async updateProfile(req, res) {
+  async getProfile(req, res, next) {
     try {
-      const newData = await ruleValidator.profile.schema.validateAsync(req.body)
-
-      if (newData.phone) {
-        const exists = await User.findOne({ phone: newData.phone, _id: { $ne: req.user.id } });
-        if (exists) {
-          return responseBuilder.conflict(res, null, "Phone already in use");
-        }
-      }
-
-      const user = await User.findByIdAndUpdate(req.user.id, newData, {
-        new: true,
-      }).select("-password -_id");
-
-      if (!user) {
-        return responseBuilder.notFound(res, null, "User not found");
-      }
-
-      return responseBuilder.success(res, user);
+      const profile = await this.profileService.getProfile(req.user.id);
+      return responseBuilder.success(res, profile);
     } catch (err) {
-      if (Joi.isError(err)) {
-        return responseBuilder.badRequest(res, null, err.details[0].message);
-      }
-      console.error("Update profile error:", err);
-      return responseBuilder.internalErr(res);
+      return next(err);
     }
-  },
-};
+  }
 
+  async updateProfile(req, res, next) {
+    try {
+      const updateData = req.body;
 
+      const updatedProfile = await this.profileService.updateProfile(
+        req.user.id,
+        updateData
+      );
 
+      return responseBuilder.success(res, updatedProfile);
+    } catch (err) {
+      return next(err);
+    }
+  }
+}

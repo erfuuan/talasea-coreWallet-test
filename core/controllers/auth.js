@@ -1,92 +1,40 @@
-import cryptography from "../utils/cryptography.js";
-import User from "../models/users.js";
-import Models from "../models/index.js";
-import responseBuilder from "../utils/responseBuilder.js";
-import { buildToken } from "../utils/tokenGenerator.js";
-import Joi from "joi";
-import ruleValidator from "../validators/index.js";
-export default {
+import responseBuilder from '../utils/responseBuilder.js';
 
-  async signup(req, res) {
+export default class AuthController {
+  constructor({ authService }) {
+    if (!authService) {
+      throw new Error('authService is required');
+    }
+    this.authService = authService;
+  }
+
+  async signup(req, res, next) {
     try {
-      const { firstName, lastName, nationalCode, phone, password } = await ruleValidator.signup.schema.validateAsync(req.body)
-      const existing = await User.findOne({
-        $or: [{ phone }, { nationalCode }],
-      });
+      const { firstName, lastName, nationalCode, phone, password } =req.body;
 
-      if (existing) { return responseBuilder.conflict(res, null, "User already exists") }
-      const hashedPassword = await cryptography.password.hash(password);
-      const session = await Models.User.startSession();
-      session.startTransaction();
-
-      const user = await Models.User.create([{
+      const result = await this.authService.signup({
         firstName,
         lastName,
         nationalCode,
         phone,
-        password: hashedPassword,
-      }], { session });
-
-      await Models.wallet.create([{
-        userId: user[0]._id,
-        balance: 0,
-        lockedBalance: 0
-      }], { session });
-      await session.commitTransaction();
-      session.endSession();
-
-      const token = buildToken(user[0]);
-
-      return responseBuilder.created(res, {
-        id: user[0]._id,
-        firstName: user[0].firstName,
-        lastName: user[0].lastName,
-        nationalCode: user[0].nationalCode,
-        phone: user[0].phone,
-        role: user[0].role,
-        token: "Bearer " + token,
+        password,
       });
+
+      return responseBuilder.created(res, result);
     } catch (err) {
-      if (Joi.isError(err)) {
-        return responseBuilder.badRequest(res, null, err.details[0].message);
-      }
-      console.error("Signup error:", err);
-      return responseBuilder.internalErr(res);
+      return next(err);
     }
-  },
+  }
 
-
-  async login(req, res) {
+  async login(req, res, next) {
     try {
-      const { phone, password } = await ruleValidator.login.schema.validateAsync(req.body)
+      const { phone, password } = req.body
 
-      const user = await User.findOne({
-        phone,
-      });
+      const result = await this.authService.login({ phone, password });
 
-      if (!user) { return responseBuilder.unauthorized(res, null, "Invalid credentials") }
-
-      const isMatch = await cryptography.password.compare(password, user.password);
-
-      if (!isMatch) { return responseBuilder.unauthorized(res, null, "Invalid credentials") }
-
-      const token = buildToken(user);
-
-      return responseBuilder.success(res, {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        nationalCode: user.nationalCode,
-        phone: user.phone,
-        role: user.role,
-        token: "Bearer " + token,
-      });
+      return responseBuilder.success(res, result);
     } catch (err) {
-      if (Joi.isError(err)) {
-        return responseBuilder.badRequest(res, null, err.details[0].message);
-      }
-      console.error("Login error:", err);
-      return responseBuilder.internalErr(res);
+      return next(err);
     }
   }
 }
