@@ -24,6 +24,7 @@ const config = {
     rateLimiter: {
       defaultPoints: parseInt(process.env.RATE_LIMITER_POINTS || "10", 10),
       defaultDuration: parseInt(process.env.RATE_LIMITER_DURATION || "60", 10),
+      keyPrefix: process.env.RATE_LIMITER_KEY_PREFIX || "rate-limiter",
     },
   }
 

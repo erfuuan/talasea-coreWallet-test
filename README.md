@@ -1,30 +1,28 @@
-# Simple Express + pkg Project
+# Talasea Core Wallet
 
-This is a minimal Express project prepared for packaging with `pkg`.
+Core wallet API service built with Express.js, MongoDB, and Redis.
 
-Quick start:
+## Quick Start
 
-1. Install dependencies
+Run with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+Then start the application:
 
 ```bash
 npm install
-```
-
-2. Run in development
-
-```bash
 npm run dev
-# or
-node src/index.js
 ```
 
-3. Build a standalone binary (requires `pkg`)
+The server will run on `http://localhost:3000`
 
-```bash
-npm run build
-# the output binary will be in the `dist/` folder
-```
+## Concurrency Safety
 
-Notes:
-- `pkg` is included as a dev dependency. If you prefer, install it globally: `npm i -g pkg`.
-- The server listens on `PORT` env var or `3000` by default.
+This application implements multiple layers of concurrency protection:
+
+- **Redis Distributed Lock**: Prevents concurrent operations on the same resource using atomic SET NX PX operations
+- **MongoDB Transactions**: Ensures atomicity of multi-document operations with proper commit/abort handling
+- **Optimistic Version Control**: Uses `__v` field to detect and prevent concurrent updates with automatic version increment

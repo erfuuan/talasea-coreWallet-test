@@ -2,11 +2,8 @@ import mongoose from "mongoose";
 import logger from "../utils/Logger.js";
 
 class MongoService {
-  constructor(models) {
-    if (!models) {
-      throw new Error("Models are required");
-    }
-    this.models = models;
+  constructor() {
+    // Constructor no longer needs models parameter
   }
 
   async startSession() {
@@ -198,49 +195,6 @@ class MongoService {
     }
   }
 
-  async find(Model, condition = {}, options = {}) {
-    const {
-      populate = null,
-      sort = null,
-      select = null,
-      session = null,
-    } = options;
-
-    try {
-      if (!Model || typeof Model.find !== "function") {
-        throw new Error("Valid Mongoose Model is required for find");
-      }
-
-      let query = Model.find(condition);
-
-      if (session) {
-        query = query.session(session);
-      }
-
-      if (populate) {
-        query = query.populate(populate);
-      }
-
-      if (sort) {
-        query = query.sort(sort);
-      }
-
-      if (select) {
-        query = query.select(select);
-      }
-
-      const data = await query.lean();
-      return data;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.find for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, condition, options }
-      );
-      throw err;
-    }
-  }
-
   async updateById(Model, data, id, options = {}) {
     const {
       populate = null,
@@ -282,132 +236,6 @@ class MongoService {
       throw err;
     }
   }
-
-  async delete(schema, dataId, data, session = null) {
-    try {
-      const dataSchema = this.models[schema];
-      if (!dataSchema) {
-        throw new Error(`Model '${schema}' not found`);
-      }
-
-      let query = dataSchema.findByIdAndUpdate(dataId, data);
-
-      if (session) {
-        query = query.session(session);
-      }
-
-      await query;
-      return true;
-    } catch (err) {
-      logger.error(`Error from @delete MongoService for schema ${schema}`, err, { schema, dataId });
-      throw err;
-    }
-  }
-
-  async deleteById(Model, id, options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!Model || typeof Model.findByIdAndDelete !== "function") {
-        throw new Error("Valid Mongoose Model is required for deleteById");
-      }
-
-      let query = Model.findByIdAndDelete(id);
-
-      if (session) {
-        query = query.session(session);
-      }
-
-      const deletedDoc = await query.lean();
-      return deletedDoc ?? null;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.deleteById for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, id }
-      );
-      throw err;
-    }
-  }
-
-
-  async count(Model, condition = {}, options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!Model || typeof Model.countDocuments !== "function") {
-        throw new Error("Valid Mongoose Model is required for count");
-      }
-
-      let query = Model.countDocuments(condition);
-
-      if (session) {
-        query = query.session(session);
-      }
-
-      const total = await query;
-      return total;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.count for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, condition }
-      );
-      throw err;
-    }
-  }
-
-  async updateOne(Model, condition, data, options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!Model || typeof Model.updateOne !== "function") {
-        throw new Error("Valid Mongoose Model is required for updateOne");
-      }
-
-      const updateOptions = { ...options };
-      if (session) {
-        updateOptions.session = session;
-      }
-
-      const result = await Model.updateOne(condition, data, updateOptions);
-      return result;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.updateOne for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, condition, data }
-      );
-      throw err;
-    }
-  }
-
-
-  async updateMany(Model, condition, data, options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!Model || typeof Model.updateMany !== "function") {
-        throw new Error("Valid Mongoose Model is required for updateMany");
-      }
-
-      const updateOptions = {};
-      if (session) {
-        updateOptions.session = session;
-      }
-
-      const result = await Model.updateMany(condition, data, updateOptions);
-      return result;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.updateMany for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, condition, data }
-      );
-      throw err;
-    }
-  }
-
 
   async findOneAndUpdate(Model, condition, data, options = {}) {
     const {
@@ -456,87 +284,6 @@ class MongoService {
     }
   }
 
-
-  async findOneAndDelete(Model, condition, options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!Model || typeof Model.findOneAndDelete !== "function") {
-        throw new Error("Valid Mongoose Model is required for findOneAndDelete");
-      }
-
-      let query = Model.findOneAndDelete(condition);
-
-      if (session) {
-        query = query.session(session);
-      }
-
-      const deletedDoc = await query.lean();
-      return deletedDoc;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.findOneAndDelete for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, condition }
-      );
-      throw err;
-    }
-  }
-
-
-
-  async aggregate(Model, pipeline = [], options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!Model || typeof Model.aggregate !== "function") {
-        throw new Error("Valid Mongoose Model is required for aggregate");
-      }
-
-      // Build aggregation
-      const agg = Model.aggregate(pipeline);
-
-      // If a session is provided, attach it
-      if (session) {
-        agg.options = agg.options || {};
-        agg.options.session = session;
-      }
-
-      const result = await agg.exec();
-      return result;
-    } catch (err) {
-      logger.error(
-        `Error in MongoService.aggregate for model ${Model?.modelName || "unknown"}`,
-        err,
-        { model: Model?.modelName, pipeline }
-      );
-      throw err;
-    }
-  }
-
-
-
-  async save(document, options = {}) {
-    const { session = null } = options;
-
-    try {
-      if (!document || typeof document.save !== "function") {
-        throw new Error("Valid Mongoose document is required for save");
-      }
-
-      if (session) {
-        return await document.save({ session });
-      }
-      return await document.save();
-    } catch (err) {
-      logger.error(
-        "Error in MongoService.save",
-        err,
-        { model: document?.constructor?.modelName || "unknown" }
-      );
-      throw err;
-    }
-  }
 
 }
 

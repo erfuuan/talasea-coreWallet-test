@@ -6,8 +6,7 @@ import AssetService from './service/asset.js';
 import ProductService from './service/product.js';
 import MongoService from './repository/mongo.js';
 import redisManager from './connections/redis.js';
-import Models from './models/index.js';
-import RedisDB from './config/redisDb.js';
+import RedisDB from './enum/redisDbEnum.js';
 
 import WalletModel from './models/wallet.js';
 import TransactionModel from './models/transaction.js';
@@ -17,7 +16,7 @@ import ProductModel from './models/product.js';
 import TradesService from './service/trade.js';
 import CommodityModel from './models/commodity.js';
 import UserAssetModel from './models/userAsset.js';
-const mongoService = new MongoService(Models);
+const mongoService = new MongoService();
 
 export const container = {
   tradesService: new TradesService({

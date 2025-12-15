@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import logger from "../utils/Logger.js";
 import RedisService from "../service/redis.js";
 import config from "../config/application.js";
-import RedisDB from "../config/redisDb.js";
+import RedisDB from "../enum/redisDbEnum.js";
 
 class RedisManager {
   constructor() {

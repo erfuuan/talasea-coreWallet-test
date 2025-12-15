@@ -1,10 +1,10 @@
 import { RateLimiterRedis } from "rate-limiter-flexible";
 import redisManager from "../connections/redis.js";
 import responseBuilder from "../utils/responseBuilder.js";
-import RedisDB from "../config/redisDb.js";
+import RedisDB from "../enum/redisDbEnum.js";
 import config from "../config/application.js";
 import logger from "../utils/Logger.js";
-// Get the raw Redis client from RedisService wrapper
+
 const getRedisClient = () => {
   const redisService = redisManager.getService(RedisDB.RATE_LIMITER);
   return redisService.client;
@@ -26,7 +26,7 @@ export default (pointsOrOptions = config.rateLimiter.defaultPoints, duration = c
 
   const limiter = new RateLimiterRedis({
     storeClient: redisClient,
-    keyPrefix: "rl",
+    keyPrefix: config.rateLimiter.keyPrefix,
     points,
     duration: durationValue,
     // Ensure connection errors are handled gracefully

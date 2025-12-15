@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
 import logger from "../utils/Logger.js";
+import config from "../config/application.js";
 
 mongoose.set("strictQuery", true);
 
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  "mongodb://127.0.0.1:27017/talasea-corewallet?replicaSet=rs0";
+const MONGO_URI = config.mongoUri;
 
 const connectionOptions = {
   maxPoolSize: 20,

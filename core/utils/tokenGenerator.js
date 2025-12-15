@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
+import config from "../config/application.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "100d";
+const JWT_SECRET = config.jwt.secret;
+const JWT_EXPIRES_IN = config.jwt.expiresIn;
 
 export const buildToken = (user) =>{
  return jwt.sign(

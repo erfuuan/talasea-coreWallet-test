@@ -1,6 +1,6 @@
 import responseBuilder from "../utils/responseBuilder.js";
 import redisManager from "../connections/redis.js";
-import RedisDB from "../config/redisDb.js";
+import RedisDB from "../enum/redisDbEnum.js";
 import logger from "../utils/Logger.js";
 
 const getRedisClient = () => {
