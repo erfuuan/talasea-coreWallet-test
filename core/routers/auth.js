@@ -1,9 +1,8 @@
 import express from 'express';
 import AuthController from '../controllers/auth.js';
 import { container } from '../container.js';
-import validateBody from '../middlewares/validator.js';
 import validators from '../validators/index.js';
-
+import middlewares from '../middlewares/index.js';
 const router = express.Router();
 const authController = new AuthController({
   authService: container.authService,
@@ -76,7 +75,7 @@ const authController = new AuthController({
  */
 router.post(
   '/signup',
-  validateBody(validators.signup.schema),
+  middlewares.validator(validators.signup.schema),
   authController.signup.bind(authController)
 );
 
@@ -129,7 +128,7 @@ router.post(
  */
 router.post(
   '/login',
-  validateBody(validators.login.schema),
+  middlewares.validator(validators.login.schema),
   authController.login.bind(authController)
 );
 

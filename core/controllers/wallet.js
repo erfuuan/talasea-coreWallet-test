@@ -41,7 +41,6 @@ export default class WalletController {
         amount,
         idempotencyKey
       );
-
       return responseBuilder.success(res, updatedWallet, "Deposit successful");
     } catch (err) {
       return next(err);

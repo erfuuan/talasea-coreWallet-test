@@ -1,5 +1,3 @@
-// services/wallet.service.js
-
 import { BadRequestError, ConflictError, NotFoundError } from "../utils/errors.js";
 import cryptography from "../utils/cryptography.js";
 
@@ -31,15 +29,6 @@ export default class WalletService {
 
     session = await this.mongoService.startSession();
     this.mongoService.startTransaction(session);
-
-
-      // Idempotency: اگر قبلاً پردازش شده باشه همون نتیجه رو می‌دیم
-      if (idempotencyKey) {
-        const cached = await this.idempotencyService.getJSON(idempotencyKey);
-        if (cached) {
-          return cached;
-        }
-      }
 
       const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId }, { session });
       if (!wallet) throw new NotFoundError("Wallet not found");
@@ -86,27 +75,19 @@ export default class WalletService {
     }
   }
 
-
   async deposit(userId, amount, idempotencyKey) {
     if (amount <= 0) throw new BadRequestError("Amount must be positive");
     let session,lockKey,lockToken
-try {
+    try {
     lockKey = `lock:wallet:${userId}`;
     lockToken = await this.redisLockService.acquireLock(lockKey, 7000);
     if (!lockToken) throw new ConflictError("Another wallet operation is in progress");
 
     session = await this.mongoService.startSession();
     this.mongoService.startTransaction(session);
-
-      if (idempotencyKey) {
-        const cached = await this.idempotencyService.getJSON(idempotencyKey);
-        if (cached) {
-          return cached;
-        }
-      }
-      const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId }, { session });
-      if (!wallet) throw new NotFoundError("Wallet not found");
-
+    const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId }, { session });
+    if (!wallet) throw new NotFoundError("Wallet not found");
+  
       const balanceBefore = wallet.balance;
 
       const updatedWallet = await this.mongoService.findOneAndUpdate(this.Wallet, { _id: wallet._id, __v: wallet.__v }, { $inc: { balance: amount, __v: 1 } }, { new: true, session });

@@ -56,6 +56,15 @@ const responseBuilder = {
     };
     return response.status(404).send(res);
   },
+  unauthorized(response, data, message) {
+    const res = {
+      statusCode: 401,
+      error: "unauthorized",
+      message: message ? message : undefined,
+      data: data ? data : undefined,
+    };
+    return response.status(401).send(res);
+  },
 };
 
 export default responseBuilder;

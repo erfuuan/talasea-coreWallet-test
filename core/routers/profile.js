@@ -1,8 +1,8 @@
 import express from 'express';
 import ProfileController from '../controllers/profile.js';
 import { container } from '../container.js';
-import validateBody from '../middlewares/validator.js';
 import validators from '../validators/index.js';
+import middlewares from '../middlewares/index.js';
 
 const router = express.Router();
 const profileController = new ProfileController({
@@ -105,7 +105,7 @@ router.get('/', profileController.getProfile.bind(profileController));
  */
 router.put(
   '/',
-  validateBody(validators.profile.schema),
+  middlewares.validator(validators.profile.schema),
   profileController.updateProfile.bind(profileController)
 );
 

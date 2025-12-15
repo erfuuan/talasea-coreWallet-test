@@ -2,7 +2,6 @@ import express from "express";
 import WalletController from "../controllers/wallet.js";
 import middlewares from "../middlewares/index.js";
 import { container } from "../container.js";
-import validateBody from "../middlewares/validator.js";
 import validators from "../validators/index.js";
 const router = express.Router();
 const walletController = new WalletController({
@@ -127,7 +126,7 @@ router.get("/",  walletController.getWallet.bind(walletController));
  *                   error: "too_many_requests"
  *                   message: "Too many requests, please try again later"
  */
-router.post("/deposit", middlewares.rateLimiter(5, 60), validateBody(validators.wallet.schema), walletController.deposit.bind(walletController));
+router.post("/deposit", middlewares.rateLimiter(5, 60), middlewares.validator(validators.wallet.schema), walletController.deposit.bind(walletController));
 
 /**
  * @swagger
@@ -200,6 +199,6 @@ router.post("/deposit", middlewares.rateLimiter(5, 60), validateBody(validators.
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/withdraw", middlewares.rateLimiter(3, 60), validateBody(validators.wallet.schema), walletController.withdraw.bind(walletController));
+router.post("/withdraw", middlewares.rateLimiter(3, 60), middlewares.validator(validators.wallet.schema),  walletController.withdraw.bind(walletController));
 
 export default router;

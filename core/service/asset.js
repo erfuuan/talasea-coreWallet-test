@@ -50,22 +50,14 @@ export default class AssetService {
   
     let session, lockKey, lockToken;
     try {
-      // 1️⃣ Lock
       lockKey = `lock:buy-asset:${userId}`;
       lockToken = await this.redisLockService.acquireLock(lockKey, 8000);
       if (!lockToken) throw new ConflictError("Another asset operation in progress");
   
-      // 2️⃣ Start transaction
       session = await this.mongoService.startSession();
       this.mongoService.startTransaction(session);
   
-      // 3️⃣ Idempotency check
-      if (idempotencyKey) {
-        const cached = await this.idempotencyService.getJSON(idempotencyKey);
-        if (cached) return cached;
-      }
   
-      // 4️⃣ Load wallet
       const wallet = await this.mongoService.findOneRecord(
         this.Wallet,
         { userId },
@@ -73,7 +65,6 @@ export default class AssetService {
       );
       if (!wallet) throw new NotFoundError("Wallet not found");
   
-      // 5️⃣ Load product
       const product = await this.mongoService.findOneRecord(
         this.Product,
         { _id: productId },
@@ -85,7 +76,6 @@ export default class AssetService {
       const totalPrice = grams * product.buyPrice;
       if (wallet.balance < totalPrice) throw new BadRequestError("Insufficient balance");
   
-      // 6️⃣ Find or create user asset
       let asset = await this.mongoService.findOneRecord(
         this.Asset,
         { userId, productId },
@@ -102,7 +92,6 @@ export default class AssetService {
       const walletBefore = wallet.balance;
       const assetBefore = asset.amount;
   
-      // 7️⃣ Update wallet
       const updatedWallet = await this.mongoService.findOneAndUpdate(
         this.Wallet,
         { _id: wallet._id, __v: wallet.__v },
@@ -111,7 +100,6 @@ export default class AssetService {
       );
       if (!updatedWallet) throw new ConflictError("Wallet updated by another process");
   
-      // 8️⃣ Update asset
       const updatedAsset = await this.mongoService.findOneAndUpdate(
         this.Asset,
         { _id: asset._id, __v: asset.__v },
@@ -120,13 +108,12 @@ export default class AssetService {
       );
       if (!updatedAsset) throw new ConflictError("Asset updated by another process");
   
-      // 9️⃣ Create transaction
       await this.mongoService.create(
         this.Transaction,
         {
           userId,
           productId,
-          type: "BUY",
+          type: "BUY_GOLD_PHYSICAL",
           status: "SUCCESS",
           amount: grams,
           price: product.buyPrice,
@@ -142,10 +129,8 @@ export default class AssetService {
         { session }
       );
   
-      // 10️⃣ Commit
       await this.mongoService.commitTransaction(session);
   
-      // 11️⃣ Save idempotency
       if (idempotencyKey) {
         await this.idempotencyService.setJSON(
           idempotencyKey,
@@ -170,22 +155,13 @@ export default class AssetService {
   
     let session, lockKey, lockToken;
     try {
-      // 1️⃣ Lock
       lockKey = `lock:sell-asset:${userId}`;
       lockToken = await this.redisLockService.acquireLock(lockKey, 8000);
       if (!lockToken) throw new ConflictError("Another asset operation in progress");
   
-      // 2️⃣ Start transaction
       session = await this.mongoService.startSession();
       this.mongoService.startTransaction(session);
   
-      // 3️⃣ Idempotency check
-      if (idempotencyKey) {
-        const cached = await this.idempotencyService.getJSON(idempotencyKey);
-        if (cached) return cached;
-      }
-  
-      // 4️⃣ Find asset
       const asset = await this.mongoService.findOneRecord(
         this.Asset,
         { userId, productId },
@@ -250,7 +226,7 @@ export default class AssetService {
         {
           userId,
           productId,
-          type: "SELL",
+          type: "SELL_GOLD_PHYSICAL",
           status: "SUCCESS",
           amount: grams,
           price: product.sellPrice,

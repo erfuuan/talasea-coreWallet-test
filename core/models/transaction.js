@@ -6,18 +6,22 @@ const TransactionSchema = new mongoose.Schema({
     index: true,
     required: true,
   },
-  productId: { type: mongoose.Types.ObjectId, ref: "Product", required: true },
+  productId: { type: mongoose.Types.ObjectId, ref: "Product", default: null },
   type: {
     type: String,
     enum: [
       "DEPOSIT",
       "WITHDRAW",
-      "BUY_GOLD",
-      "SELL_GOLD"
+      "BUY_GOLD_ONLINE",
+      "BUY_SILVER_ONLINE",
+      "SELL_GOLD_ONLINE",
+      "SELL_SILVER_ONLINE",
+      "BUY_GOLD_PHYSICAL",     
+      "BUY_SILVER_PHYSICAL",
+      "SELL_GOLD_PHYSICAL",
+      "SELL_SILVER_PHYSICAL",
     ],
-    required: true,
   },
-
   status: {
     type: String,
     enum: ["PENDING", "SUCCESS", "FAILED"],
@@ -25,12 +29,10 @@ const TransactionSchema = new mongoose.Schema({
     index: true,
   },
 
-
   amount: {
     type: Number,
     required: true,
   },
-
   refId: {
     type: String,
     required: true,

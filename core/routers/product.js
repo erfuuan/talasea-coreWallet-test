@@ -14,6 +14,8 @@ const productController = new ProductController({
  *     summary: Get products
  *     description: Retrieves available products (gold or silver). Can filter by type, karat, and active status. Returns list of products with their buy and sell prices.
  *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: type
@@ -80,6 +82,12 @@ const productController = new ProductController({
  *                         format: date-time
  *       400:
  *         description: Bad request - Invalid query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
  *         content:
  *           application/json:
  *             schema:
