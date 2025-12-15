@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { TransactionTypeValues, TransactionStatusValues, TransactionStatus } from "../enum/transactionEnums.js";
+
 const TransactionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Types.ObjectId,
@@ -9,23 +11,12 @@ const TransactionSchema = new mongoose.Schema({
   productId: { type: mongoose.Types.ObjectId, ref: "Product", default: null },
   type: {
     type: String,
-    enum: [
-      "DEPOSIT",
-      "WITHDRAW",
-      "BUY_GOLD_ONLINE",
-      "BUY_SILVER_ONLINE",
-      "SELL_GOLD_ONLINE",
-      "SELL_SILVER_ONLINE",
-      "BUY_GOLD_PHYSICAL",     
-      "BUY_SILVER_PHYSICAL",
-      "SELL_GOLD_PHYSICAL",
-      "SELL_SILVER_PHYSICAL",
-    ],
+    enum: TransactionTypeValues,
   },
   status: {
     type: String,
-    enum: ["PENDING", "SUCCESS", "FAILED"],
-    default: "PENDING",
+    enum: TransactionStatusValues,
+    default: TransactionStatus.PENDING,
     index: true,
   },
 

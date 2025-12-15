@@ -1,16 +1,17 @@
 import mongoose from "mongoose";
+import { CommodityTypeValues, CommodityType, KaratValues, Unit, UnitValues } from "../enum/commodityEnums.js";
 
 const productSchema = new mongoose.Schema(
   {
-    type: { type: String, enum: ["gold", "silver"], required: true },
+    type: { type: String, enum: CommodityTypeValues, required: true },
     karat: {
       type: Number,
-      enum: [14, 16, 18, 22, 24],
+      enum: KaratValues,
       required: function () {
-        return this.type === "gold";
+        return this.type === CommodityType.GOLD;
       },
     },
-    unit: { type: String, default: "gram" },
+    unit: { type: String, enum: UnitValues, default: Unit.GRAM },
 
     buyPrice: { type: Number, required: true },  
     sellPrice: { type: Number, required: true }, 

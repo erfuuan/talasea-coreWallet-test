@@ -1,12 +1,13 @@
 import Joi from "joi";
+import { CommodityTypeValues, UnitValues } from "../enum/commodityEnums.js";
 
  const schema = Joi.object({
   commodity: Joi.string()
-    .valid("gold", "silver")
+    .valid(...CommodityTypeValues)
     .required()
     .messages({
       "string.base": `"commodity" must be a string`,
-      "any.only": `"commodity" must be one of "gold" or "silver"`,
+      "any.only": `"commodity" must be one of ${CommodityTypeValues.join(" or ")}`,
       "any.required": `"commodity" is required`,
     }),
 
@@ -20,10 +21,10 @@ import Joi from "joi";
     }),
 
   unit: Joi.string()
-    .valid("gram", "ounce", "kilogram")
+    .valid(...UnitValues)
     .messages({
       "string.base": `"unit" must be a string`,
-      "any.only": `"unit" must be one of "gram", "ounce" or "kilogram"`,
+      "any.only": `"unit" must be one of ${UnitValues.join(", ")}`,
     }),
 
 });

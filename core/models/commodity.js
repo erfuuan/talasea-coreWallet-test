@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
+import { CommodityTypeValues, UnitValues, Unit } from "../enum/commodityEnums.js";
 
 const CommodityPriceSchema = new mongoose.Schema({
   commodity: {
     type: String,
-    enum: ["gold", "silver"],
+    enum: CommodityTypeValues,
     required: true,
     index: true
   },
@@ -13,8 +14,8 @@ const CommodityPriceSchema = new mongoose.Schema({
   },
   unit: {
     type: String,
-    enum: ["gram", "ounce", "kilogram"],
-    default: "gram"
+    enum: UnitValues,
+    default: Unit.GRAM
   },
   feePercent: {
     type: Number,

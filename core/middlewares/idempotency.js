@@ -11,6 +11,10 @@ const getRedisClient = () => {
 const redisClient = getRedisClient();
   
 export default async (req, res, next) => {
+
+    if(req.originalUrl.includes("/api/v1/wallet") || req.originalUrl.includes("/api/v1/asset") && req.method === "GET") {
+        return next();
+    }
     const key = req.header("idempotency-key");
     if (!key) return responseBuilder.badRequest(res, null, "idempotency-key header is required");
 

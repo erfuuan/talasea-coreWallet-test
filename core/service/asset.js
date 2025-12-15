@@ -4,6 +4,8 @@ import {
   NotFoundError,
 } from '../utils/errors.js';
 import cryptography from '../utils/cryptography.js';
+import { TransactionType, TransactionStatus } from '../enum/transactionEnums.js';
+import { CommodityType } from '../enum/commodityEnums.js';
 
 export default class AssetService {
   constructor({
@@ -108,13 +110,17 @@ export default class AssetService {
       );
       if (!updatedAsset) throw new ConflictError("Asset updated by another process");
   
+      const transactionType = product.type === CommodityType.GOLD 
+        ? TransactionType.BUY_GOLD_PHYSICAL 
+        : TransactionType.BUY_SILVER_PHYSICAL;
+
       await this.mongoService.create(
         this.Transaction,
         {
           userId,
           productId,
-          type: "BUY_GOLD_PHYSICAL",
-          status: "SUCCESS",
+          type: transactionType,
+          status: TransactionStatus.SUCCESS,
           amount: grams,
           price: product.buyPrice,
           refId: cryptography.trackId(),
@@ -221,13 +227,17 @@ export default class AssetService {
       }
   
       // 9️⃣ Create transaction
+      const transactionType = product.type === CommodityType.GOLD 
+        ? TransactionType.SELL_GOLD_PHYSICAL 
+        : TransactionType.SELL_SILVER_PHYSICAL;
+
       await this.mongoService.create(
         this.Transaction,
         {
           userId,
           productId,
-          type: "SELL_GOLD_PHYSICAL",
-          status: "SUCCESS",
+          type: transactionType,
+          status: TransactionStatus.SUCCESS,
           amount: grams,
           price: product.sellPrice,
           refId: cryptography.trackId(),

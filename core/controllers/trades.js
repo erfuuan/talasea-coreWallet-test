@@ -19,5 +19,19 @@ export default class TradesController {
     }
   }
 
-  async sellCommodity(req, res, next) {}
+  async sellCommodity(req, res, next) {
+
+
+    try {
+      const { commodity, amount, unit } = req.body;
+      const idempotencyKey = req.idempotencyKey || null;
+      const result = await this.tradesService.sellCommodity({ userId: req.user.id, commodity, amount, unit, idempotencyKey });
+      return responseBuilder.success(res, result, "Commodity sold successfully");
+    } catch (err) {
+      return next(err);
+    }
+
+
+
+  }
 }

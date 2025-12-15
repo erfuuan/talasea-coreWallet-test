@@ -5,8 +5,8 @@ export default function errorHandler(err, req, res, _) {
     return res.status(err.statusCode).json({
       statusCode: err.statusCode,
       error: err.error || "error",
-        message: err.message || "Sorry!, Something went wrong",
-        data: err.data || null,
+      message: err.message || "Sorry!, Something went wrong",
+      data: err.data || null,
     });
   }
   logger.error(err);

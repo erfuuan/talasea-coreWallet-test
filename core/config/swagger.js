@@ -359,6 +359,10 @@ const options = {
         Transaction: {
           type: 'object',
           properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
             id: {
               type: 'string',
               example: '507f1f77bcf86cd799439011',
@@ -367,46 +371,91 @@ const options = {
               type: 'string',
               example: '507f1f77bcf86cd799439011',
             },
+            productId: {
+              type: 'string',
+              nullable: true,
+              example: '507f1f77bcf86cd799439011',
+              description: 'Product ID (for physical transactions)',
+            },
             type: {
               type: 'string',
-              enum: ['deposit', 'withdraw', 'buy', 'sell'],
-              example: 'deposit',
+              enum: [
+                'DEPOSIT',
+                'WITHDRAW',
+                'BUY_GOLD_ONLINE',
+                'BUY_SILVER_ONLINE',
+                'SELL_GOLD_ONLINE',
+                'SELL_SILVER_ONLINE',
+                'BUY_GOLD_PHYSICAL',
+                'BUY_SILVER_PHYSICAL',
+                'SELL_GOLD_PHYSICAL',
+                'SELL_SILVER_PHYSICAL',
+              ],
+              example: 'DEPOSIT',
+            },
+            status: {
+              type: 'string',
+              enum: ['PENDING', 'SUCCESS', 'FAILED'],
+              example: 'SUCCESS',
             },
             amount: {
               type: 'number',
               example: 50000,
+              description: 'Transaction amount',
             },
-            assetType: {
+            commodity: {
               type: 'string',
               enum: ['gold', 'silver'],
               nullable: true,
               example: 'gold',
-              description: 'Asset type (only for buy/sell transactions)',
-            },
-            grams: {
-              type: 'number',
-              nullable: true,
-              example: 10.5,
-              description: 'Grams (only for buy/sell transactions)',
+              description: 'Commodity type (for trade transactions)',
             },
             pricePerUnit: {
               type: 'number',
               nullable: true,
               example: 2500000,
-              description: 'Price per unit (only for buy/sell transactions)',
+              description: 'Price per unit (for trade transactions)',
             },
-            karat: {
+            fee: {
               type: 'number',
               nullable: true,
-              example: 18,
-              description: 'Karat (only for gold transactions)',
+              example: 25000,
+              description: 'Transaction fee (for trade transactions)',
             },
-            balanceAfter: {
+            total: {
               type: 'number',
-              example: 1050000.50,
-              description: 'Wallet balance after transaction',
+              nullable: true,
+              example: 2525000,
+              description: 'Total cost/income (for trade transactions)',
+            },
+            refId: {
+              type: 'string',
+              example: 'TRK-20240115-123456',
+              description: 'Unique transaction reference ID',
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                balanceBefore: {
+                  type: 'number',
+                  nullable: true,
+                  example: 1000000,
+                  description: 'Wallet balance before transaction',
+                },
+                balanceAfter: {
+                  type: 'number',
+                  nullable: true,
+                  example: 1050000.50,
+                  description: 'Wallet balance after transaction',
+                },
+              },
+              additionalProperties: true,
             },
             createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
               type: 'string',
               format: 'date-time',
             },
@@ -427,6 +476,112 @@ const options = {
               items: {
                 $ref: '#/components/schemas/Transaction',
               },
+            },
+          },
+        },
+        TradeRequest: {
+          type: 'object',
+          required: ['commodity', 'amount'],
+          properties: {
+            commodity: {
+              type: 'string',
+              enum: ['gold', 'silver'],
+              example: 'gold',
+              description: 'Type of commodity to trade',
+            },
+            amount: {
+              type: 'number',
+              minimum: 0,
+              exclusiveMinimum: true,
+              example: 10,
+              description: 'Amount of commodity to buy/sell (must be greater than 0)',
+            },
+            unit: {
+              type: 'string',
+              enum: ['gram', 'ounce', 'kilogram'],
+              example: 'gram',
+              description: 'Unit of measurement (optional)',
+            },
+          },
+        },
+        TradeTransaction: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            userId: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            commodity: {
+              type: 'string',
+              enum: ['gold', 'silver'],
+              example: 'gold',
+            },
+            type: {
+              type: 'string',
+              enum: [
+                'BUY_GOLD_ONLINE',
+                'BUY_SILVER_ONLINE',
+                'SELL_GOLD_ONLINE',
+                'SELL_SILVER_ONLINE',
+              ],
+              example: 'BUY_GOLD_ONLINE',
+            },
+            status: {
+              type: 'string',
+              enum: ['PENDING', 'SUCCESS', 'FAILED'],
+              example: 'SUCCESS',
+            },
+            amount: {
+              type: 'number',
+              example: 10,
+              description: 'Amount of commodity traded',
+            },
+            pricePerUnit: {
+              type: 'number',
+              example: 2500000,
+              description: 'Price per unit at time of trade',
+            },
+            fee: {
+              type: 'number',
+              example: 25000,
+              description: 'Transaction fee',
+            },
+            total: {
+              type: 'number',
+              example: 2525000,
+              description: 'Total cost (for buy) or total income (for sell)',
+            },
+            refId: {
+              type: 'string',
+              example: 'TRK-20240115-123456',
+              description: 'Unique transaction reference ID',
+            },
+            meta: {
+              type: 'object',
+              properties: {
+                balanceBefore: {
+                  type: 'number',
+                  example: 1000000,
+                  description: 'Wallet balance before transaction',
+                },
+                balanceAfter: {
+                  type: 'number',
+                  example: 747500,
+                  description: 'Wallet balance after transaction',
+                },
+              },
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
             },
           },
         },

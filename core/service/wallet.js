@@ -1,5 +1,6 @@
 import { BadRequestError, ConflictError, NotFoundError } from "../utils/errors.js";
 import cryptography from "../utils/cryptography.js";
+import { TransactionType, TransactionStatus } from "../enum/transactionEnums.js";
 
 export default class WalletService {
   constructor({ WalletModel, TransactionModel, mongoService, redisLockService, idempotencyService }) {
@@ -46,8 +47,8 @@ export default class WalletService {
       }
       await this.mongoService.create(this.Transaction, {
         userId,
-        type: "WITHDRAW",
-        status: "SUCCESS",
+        type: TransactionType.WITHDRAW,
+        status: TransactionStatus.SUCCESS,
         amount,
         refId: cryptography.trackId(),
         meta: {
@@ -99,8 +100,8 @@ export default class WalletService {
       await this.mongoService.create(this.Transaction, 
         {
           userId,
-          type: "DEPOSIT",
-          status: "SUCCESS",
+          type: TransactionType.DEPOSIT,
+          status: TransactionStatus.SUCCESS,
           amount,
           refId: cryptography.trackId(),
           meta: {
