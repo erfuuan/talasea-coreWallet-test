@@ -5,7 +5,7 @@ import morgan from "morgan";
 import compression from "compression";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "./config/swagger.js";
+import swaggerSpec from "./docs/swagger.js";
 import routes from "./routers/index.js";
 import responseBuilder from "./utils/responseBuilder.js";
 import connections from "./connections/index.js";
@@ -74,8 +74,8 @@ app.use(errorHandler);
 async function bootstrap() {
   try {
     logger.info(`Starting server on port ${PORT} and node environment ${config.nodeEnv}`);
-    
-    await redisManager.connect();   
+
+    await redisManager.connect();
     await connections.mongodbConnection.connect();
 
     const server = http.createServer(app);
