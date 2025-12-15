@@ -1,4 +1,4 @@
-import {  ConflictError, UnauthorizedError } from '../utils/errors.js';
+import { ConflictError, UnauthorizedError } from '../utils/errors.js';
 import cryptography from '../utils/cryptography.js';
 import { buildToken } from '../utils/tokenGenerator.js';
 
@@ -16,7 +16,6 @@ export default class AuthService {
   async signup({ firstName, lastName, nationalCode, phone, password }) {
     let session;
     try {
-      // Check if user already exists
       const existing = await this.mongoService.findOneRecord(this.User, {
         $or: [{ phone }, { nationalCode }],
       });
@@ -25,14 +24,11 @@ export default class AuthService {
         throw new ConflictError('User already exists');
       }
 
-      // Hash password
       const hashedPassword = await cryptography.password.hash(password);
 
-      // Start transaction
       session = await this.mongoService.startSession();
       this.mongoService.startTransaction(session);
 
-      // Create user
       const user = await this.mongoService.create(
         this.User,
         {
@@ -45,7 +41,6 @@ export default class AuthService {
         { session }
       );
 
-      // Create wallet for user
       await this.mongoService.create(
         this.Wallet,
         {
@@ -56,10 +51,8 @@ export default class AuthService {
         { session }
       );
 
-      // Commit transaction
       await this.mongoService.commitTransaction(session);
 
-      // Generate token
       const token = buildToken(user);
 
       return {

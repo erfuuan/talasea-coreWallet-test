@@ -25,7 +25,7 @@ export default class AssetController {
 
       const updatedAsset = await this.assetService.buyAsset(
         req.user.id,
-         productId, grams ,
+        productId, grams,
         idempotencyKey
       );
 
@@ -41,15 +41,14 @@ export default class AssetController {
 
   async sellAsset(req, res, next) {
     try {
-      const { productId, grams } = req.body;
+      const { assetId } = req.body;
       const idempotencyKey = req.idempotencyKey || null;
 
       const updatedAsset = await this.assetService.sellAsset(
         req.user.id,
-        productId, grams ,
+        assetId,
         idempotencyKey
       );
-
       return responseBuilder.success(
         res,
         updatedAsset,

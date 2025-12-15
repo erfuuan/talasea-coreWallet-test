@@ -6,13 +6,20 @@ import logger from "../utils/Logger.js";
 const getRedisClient = () => {
     const redisService = redisManager.getService(RedisDB.IDEMPOTENCY);
     return redisService.client;
-  };
-  
+};
+
 const redisClient = getRedisClient();
-  
+
 export default async (req, res, next) => {
 
-    if(req.originalUrl.includes("/api/v1/wallet") || req.originalUrl.includes("/api/v1/asset") && req.method === "GET") {
+    const allowedGetRoutes = [
+        "/api/v1/wallet",
+        "/api/v1/asset",
+    ];
+    if (
+        req.method === "GET" &&
+        allowedGetRoutes.some(route => req.originalUrl.includes(route))
+    ) {
         return next();
     }
     const key = req.header("idempotency-key");

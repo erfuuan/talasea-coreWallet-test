@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
-import logger from "../utils/Logger.js";
+import logger from "../utils/logger.js";
 
 class MongoService {
   constructor() {
-    // Constructor no longer needs models parameter
   }
 
   async startSession() {
@@ -124,12 +123,10 @@ class MongoService {
     const { populate = null, session = null } = options;
 
     try {
-      // 1) Validate Model
       if (!Model || typeof Model.findOne !== "function") {
         throw new Error("Valid Mongoose Model is required");
       }
 
-      // 2) Build query
       let query = Model.findOne(condition);
 
       if (session) {
@@ -139,7 +136,6 @@ class MongoService {
         query = query.populate(populate);
       }
 
-      // 3) Execute and return lean result
       const result = await query.lean();
       return result;
     } catch (err) {
@@ -210,7 +206,7 @@ class MongoService {
       let query = Model.findOneAndUpdate(
         { _id: id },
         data,
-        { new: true } // این گزینه باعث میشه مقدار *بروزرسانی‌شده* برگرده :contentReference[oaicite:0]{index=0}
+        { new: true }
       );
 
       if (session) {
@@ -251,7 +247,6 @@ class MongoService {
         throw new Error("Valid Mongoose Model is required for findOneAndUpdate");
       }
 
-      // default: return updated document
       const updateOptions = { new: true, upsert, ...options };
 
       if (session) {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import logger from "../utils/Logger.js";
+import logger from "../utils/logger.js";
 import config from "../config/application.js";
 
 mongoose.set("strictQuery", true);
@@ -19,7 +19,6 @@ const connectionOptions = {
 };
 
 
-// Graceful shutdown
 const shutdown = async () => {
   await mongoose.connection.close();
   logger.info("MongoDB connection closed");
@@ -27,7 +26,6 @@ const shutdown = async () => {
 };
 
 
-// Events
 mongoose.connection.on("connected", () => {
   logger.info("MongoDB connected");
 });
@@ -48,7 +46,6 @@ const connect = async () => {
   try {
     await mongoose.connect(MONGO_URI, connectionOptions);
 
-    // 🔴 Replica Set readiness check
     const admin = mongoose.connection.db.admin();
     const status = await admin.command({ replSetGetStatus: 1 });
 

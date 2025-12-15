@@ -11,7 +11,6 @@ const getRedisClient = () => {
 };
 
 export default (pointsOrOptions = config.rateLimiter.defaultPoints, duration = config.rateLimiter.defaultDuration) => {
-  // Support both object and positional arguments
   let points, durationValue;
   if (typeof pointsOrOptions === "object" && pointsOrOptions !== null) {
     points = pointsOrOptions.points ?? config.rateLimiter.defaultPoints;
@@ -21,7 +20,6 @@ export default (pointsOrOptions = config.rateLimiter.defaultPoints, duration = c
     durationValue = duration ?? config.rateLimiter.defaultDuration;
   }
 
-  // Get Redis client - this will be the same instance for all limiters using RATE_LIMITER DB
   const redisClient = getRedisClient();
 
   const limiter = new RateLimiterRedis({
@@ -29,7 +27,6 @@ export default (pointsOrOptions = config.rateLimiter.defaultPoints, duration = c
     keyPrefix: config.rateLimiter.keyPrefix,
     points,
     duration: durationValue,
-    // Ensure connection errors are handled gracefully
     execEvenly: false,
   });
 
@@ -44,10 +41,7 @@ export default (pointsOrOptions = config.rateLimiter.defaultPoints, duration = c
       await limiter.consume(key);
       next();
     } catch (rejRes) {
-      // RateLimiterRedis throws an error when limit is exceeded
-      // Check if it's a rate limit error or a connection error
       if (rejRes.msBeforeNext !== undefined) {
-        // This is a rate limit exceeded error
         return responseBuilder.tooManyRequests(
           res,
           {
@@ -56,8 +50,6 @@ export default (pointsOrOptions = config.rateLimiter.defaultPoints, duration = c
           "Too many requests. Please try again later."
         );
       } else {
-        // This might be a Redis connection error
-        // Log it but allow the request to proceed (fail open)
         logger.error("Rate limiter error:", rejRes);
         next();
       }

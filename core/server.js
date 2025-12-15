@@ -14,6 +14,7 @@ import { registerErrorHandlers } from "./utils/errorHandlers.js";
 import logger from "./utils/Logger.js";
 import redisManager from "./connections/redis.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import { startJobs } from "./jobs/physicalOrder.js";
 
 registerErrorHandlers();
 
@@ -82,6 +83,7 @@ async function bootstrap() {
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
+    startJobs();
 
   } catch (err) {
     logger.fatal("Startup failed", err);

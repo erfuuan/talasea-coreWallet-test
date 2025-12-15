@@ -61,7 +61,6 @@ class Logger {
         fs.mkdirSync(logDir, { recursive: true });
       }
 
-      // Separate files for each level
       const levels = ["error", "warn", "info", "debug"];
       levels.forEach((logLevel) => {
         transports.push(
@@ -75,7 +74,6 @@ class Logger {
         );
       });
 
-      // Combined log file
       transports.push(
         new winston.transports.File({
           filename: path.join(logDir, "combined.log"),

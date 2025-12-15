@@ -33,12 +33,10 @@ export default class ProfileService {
       }
     }
 
-    // Hash password if provided
     if (updateData.password) {
       updateData.password = await cryptography.password.hash(updateData.password);
     }
 
-    // Update user
     const updatedUser = await this.mongoService.updateById(
       this.User,
       updateData,

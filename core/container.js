@@ -15,7 +15,8 @@ import AssetModel from './models/asset.js';
 import ProductModel from './models/product.js';
 import TradesService from './service/trade.js';
 import CommodityModel from './models/commodity.js';
-import UserAssetModel from './models/userAsset.js';
+import OnlineAssetModel from './models/onlineAsset.js';
+import OrderModel from './models/order.js';
 const mongoService = new MongoService();
 
 export const container = {
@@ -23,7 +24,7 @@ export const container = {
     CommodityModel,
     TransactionModel,
     WalletModel,
-    UserAssetModel,
+    OnlineAssetModel,
     mongoService,
     redisLockService: redisManager.getService(RedisDB.LOCK),
     idempotencyService: redisManager.getService(RedisDB.IDEMPOTENCY),
@@ -53,6 +54,7 @@ export const container = {
     WalletModel,
     TransactionModel,
     ProductModel,
+    OrderModel,
     mongoService,
     redisLockService: redisManager.getService(RedisDB.LOCK),
     idempotencyService: redisManager.getService(RedisDB.IDEMPOTENCY),

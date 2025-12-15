@@ -5,8 +5,10 @@ import mongodbConnection from "./connections/mongodb.js";
 
 async function seedProducts() {
   try {
-    await mongodbConnection.connect();
-    console.log("✔ MongoDB connected");
+    if (!mongodbConnection.isConnected()) {
+      await mongodbConnection.connect();
+      console.log("✔ MongoDB connected");
+    }
 
     await Product.deleteMany({});
     console.log("🧹 Old products removed");
@@ -48,20 +50,18 @@ async function seedProducts() {
 
     await Product.insertMany(products);
     console.log("✅ Fake products inserted successfully");
-
-    await mongodbConnection.disconnect();
-    process.exit(0);
   } catch (err) {
     console.error("❌ Seed error:", err);
-    await mongodbConnection.disconnect();
-    process.exit(1);
+    throw err;
   }
 }
 
 export async function seedCommodityPrices() {
   try {
-    await mongodbConnection.connect();
-    console.log("✔ MongoDB connected");
+    if (!mongodbConnection.isConnected()) {
+      await mongodbConnection.connect();
+      console.log("✔ MongoDB connected");
+    }
 
     await CommodityPrice.deleteMany({});
     console.log("🧹 Old commodity prices removed");
@@ -83,15 +83,24 @@ export async function seedCommodityPrices() {
 
     await CommodityPrice.insertMany(commodityPrices);
     console.log("✅ Fake commodity prices inserted successfully");
-
-    await mongodbConnection.disconnect();
-    process.exit(0);
   } catch (err) {
     console.error("❌ Seed error:", err);
+    throw err;
+  }
+}
+
+async function runSeeds() {
+  try {
+    await seedProducts();
+    await seedCommodityPrices();
+    await mongodbConnection.disconnect();
+    console.log("✔ All seeds completed successfully");
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Seed execution error:", err);
     await mongodbConnection.disconnect();
     process.exit(1);
   }
 }
 
-// seedProducts();
-seedCommodityPrices();
+runSeeds();

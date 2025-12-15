@@ -15,21 +15,21 @@ export default class WalletService {
   }
 
   async getWallet(userId) {
-    const wallet = await this.mongoService.findOneRecord (this.Wallet, { userId });
+    const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId });
     if (!wallet) throw new NotFoundError("Wallet not found");
     return wallet;
   }
 
   async withdraw(userId, amount, idempotencyKey) {
     if (amount <= 0) throw new BadRequestError("Amount must be positive");
-    let session,lockKey,lockToken
+    let session, lockKey, lockToken
     try {
-    lockKey = `lock:wallet:${userId}`;
-    lockToken = await this.redisLockService.acquireLock(lockKey, 7000);
-    if (!lockToken) throw new ConflictError("Another wallet operation is in progress");
+      lockKey = `lock:wallet:${userId}`;
+      lockToken = await this.redisLockService.acquireLock(lockKey, 7000);
+      if (!lockToken) throw new ConflictError("Another wallet operation is in progress");
 
-    session = await this.mongoService.startSession();
-    this.mongoService.startTransaction(session);
+      session = await this.mongoService.startSession();
+      this.mongoService.startTransaction(session);
 
       const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId }, { session });
       if (!wallet) throw new NotFoundError("Wallet not found");
@@ -78,17 +78,17 @@ export default class WalletService {
 
   async deposit(userId, amount, idempotencyKey) {
     if (amount <= 0) throw new BadRequestError("Amount must be positive");
-    let session,lockKey,lockToken
+    let session, lockKey, lockToken
     try {
-    lockKey = `lock:wallet:${userId}`;
-    lockToken = await this.redisLockService.acquireLock(lockKey, 7000);
-    if (!lockToken) throw new ConflictError("Another wallet operation is in progress");
+      lockKey = `lock:wallet:${userId}`;
+      lockToken = await this.redisLockService.acquireLock(lockKey, 7000);
+      if (!lockToken) throw new ConflictError("Another wallet operation is in progress");
 
-    session = await this.mongoService.startSession();
-    this.mongoService.startTransaction(session);
-    const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId }, { session });
-    if (!wallet) throw new NotFoundError("Wallet not found");
-  
+      session = await this.mongoService.startSession();
+      this.mongoService.startTransaction(session);
+      const wallet = await this.mongoService.findOneRecord(this.Wallet, { userId }, { session });
+      if (!wallet) throw new NotFoundError("Wallet not found");
+
       const balanceBefore = wallet.balance;
 
       const updatedWallet = await this.mongoService.findOneAndUpdate(this.Wallet, { _id: wallet._id, __v: wallet.__v }, { $inc: { balance: amount, __v: 1 } }, { new: true, session });
@@ -97,7 +97,7 @@ export default class WalletService {
         throw new ConflictError("Wallet was updated by another process. Try again.");
       }
 
-      await this.mongoService.create(this.Transaction, 
+      await this.mongoService.create(this.Transaction,
         {
           userId,
           type: TransactionType.DEPOSIT,

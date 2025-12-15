@@ -156,7 +156,7 @@ router.get('/', assetController.getAsset.bind(assetController));
 router.post(
   '/buy',
   middlewares.rateLimiter(5, 60),
-  validateBody(validators.asset.schema),
+  validateBody(validators.asset.buySchema),
   assetController.buyAsset.bind(assetController)
 );
 
@@ -249,7 +249,7 @@ router.post(
 router.post(
   '/sell',
   middlewares.rateLimiter(5, 60),
-  validateBody(validators.asset.schema),
+  validateBody(validators.asset.sellSchema),
   assetController.sellAsset.bind(assetController)
 );
 
