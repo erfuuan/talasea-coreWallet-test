@@ -6,7 +6,7 @@ import Product from "../models/product.js";
 import { OrderSide, OrderStatus } from "../enum/orderEnums.js";
 import { TransactionType, TransactionStatus } from "../enum/transactionEnums.js";
 import { CommodityType } from "../enum/commodityEnums.js";
-import logger from "../utils/logger.js";
+import logger from "../utils/Logger.js";
 
 async function confirmBuyOrder(order) {
     const wallet = await Wallet.findOne({ userId: order.userId });
