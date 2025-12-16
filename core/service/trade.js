@@ -1,6 +1,6 @@
 import { NotFoundError, ConflictError, BadRequestError } from '../utils/errors.js';
 import cryptography from '../utils/cryptography.js';
-import { TransactionType, TransactionStatus, getOnlineTradeType } from '../enum/transactionEnums.js';
+import { TransactionStatus, getOnlineTradeType } from '../enum/transactionEnums.js';
 
 export default class TradeService {
   constructor({ WalletModel, TransactionModel, CommodityModel, OnlineAssetModel, mongoService, redisLockService, idempotencyService }) {
@@ -51,7 +51,7 @@ export default class TradeService {
         { session }
       );
       if (!wallet) throw new NotFoundError("Wallet not found.");
-      if (wallet.balance < totalCost) throw new BadRequestError("Insufficient balance.");
+      if (wallet.balance < totalCost){throw new BadRequestError("Insufficient balance.")}
 
       const balanceBefore = wallet.balance;
 
@@ -123,10 +123,27 @@ export default class TradeService {
 
       return transaction;
     } catch (err) {
-      await this.mongoService.abortTransaction(session);
+      if (session) {
+        try {
+          await this.mongoService.abortTransaction(session);
+        } catch  {
+          // Session might not be in transaction or already ended
+          try {
+            await this.mongoService.endSession(session);
+          } catch {
+            // Session already ended, ignore
+          }
+        }
+      }
       throw err;
     } finally {
-      await this.mongoService.endSession(session);
+      if (session) {
+        try {
+          await this.mongoService.endSession(session);
+        } catch {
+          // Session already ended, ignore
+        }
+      }
       await this.redisLockService.releaseLock(lockKey, lockToken);
     }
   }
@@ -231,14 +248,30 @@ export default class TradeService {
       return transaction;
 
     } catch (err) {
-      await this.mongoService.abortTransaction(session);
+      if (session) {
+        try {
+          await this.mongoService.abortTransaction(session);
+        } catch  {
+          // Session might not be in transaction or already ended
+          try {
+            await this.mongoService.endSession(session);
+          } catch {
+            // Session already ended, ignore
+          }
+        }
+      }
       throw err;
     } finally {
-      await this.mongoService.endSession(session);
+      if (session) {
+        try {
+          await this.mongoService.endSession(session);
+        } catch  {
+          // Session already ended, ignore
+        }
+      }
       await this.redisLockService.releaseLock(lockKey, lockToken);
     }
   }
-
 
 }
 

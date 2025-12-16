@@ -4,6 +4,7 @@ import ProfileService from './service/profile.js';
 import TransactionService from './service/transaction.js';
 import AssetService from './service/asset.js';
 import ProductService from './service/product.js';
+import OrderService from './service/order.js';
 import MongoService from './repository/mongo.js';
 import redisManager from './connections/redis.js';
 import RedisDB from './enum/redisDbEnum.js';
@@ -61,6 +62,10 @@ export const container = {
   }),
   productService: new ProductService({
     ProductModel,
+    mongoService,
+  }),
+  orderService: new OrderService({
+    OrderModel,
     mongoService,
   }),
 };

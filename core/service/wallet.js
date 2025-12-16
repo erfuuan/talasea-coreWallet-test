@@ -67,11 +67,28 @@ export default class WalletService {
       return updatedWallet;
 
     } catch (err) {
-      await this.mongoService.abortTransaction(session);
+      if (session) {
+        try {
+          await this.mongoService.abortTransaction(session);
+        } catch {
+          // Session might not be in transaction or already ended
+          try {
+            await this.mongoService.endSession(session);
+          } catch {
+            // Session already ended, ignore
+          }
+        }
+      }
       throw err;
 
     } finally {
-      this.mongoService.endSession(session);
+      if (session) {
+        try {
+          await this.mongoService.endSession(session);
+        } catch {
+          // Session already ended, ignore
+        }
+      }
       await this.redisLockService.releaseLock(lockKey, lockToken);
     }
   }
@@ -119,10 +136,27 @@ export default class WalletService {
 
       return updatedWallet;
     } catch (err) {
-      await this.mongoService.abortTransaction(session);
+      if (session) {
+        try {
+          await this.mongoService.abortTransaction(session);
+        } catch {
+          // Session might not be in transaction or already ended
+          try {
+            await this.mongoService.endSession(session);
+          } catch {
+            // Session already ended, ignore
+          }
+        }
+      }
       throw err;
     } finally {
-      this.mongoService.endSession(session);
+      if (session) {
+        try {
+          await this.mongoService.endSession(session);
+        } catch {
+          // Session already ended, ignore
+        }
+      }
       await this.redisLockService.releaseLock(lockKey, lockToken);
     }
   }

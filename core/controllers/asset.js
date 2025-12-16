@@ -10,8 +10,7 @@ export default class AssetController {
 
   async getAsset(req, res, next) {
     try {
-      const { type } = req.query;
-      const asset = await this.assetService.getAsset(req.user.id, type);
+      const asset = await this.assetService.getAsset(req.user.id);
       return responseBuilder.success(res, asset);
     } catch (err) {
       return next(err);

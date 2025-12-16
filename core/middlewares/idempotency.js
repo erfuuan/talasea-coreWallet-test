@@ -20,6 +20,7 @@ export default async (req, res, next) => {
         req.method === "GET" &&
         allowedGetRoutes.some(route => req.originalUrl.includes(route))
     ) {
+        logger.info(`idempotency key not required for GET request: ${req.originalUrl}`);
         return next();
     }
     const key = req.header("idempotency-key");
@@ -27,7 +28,7 @@ export default async (req, res, next) => {
 
     const cached = await redisClient.get(key);
     if (cached) {
-        logger.warn(`idempotency key found in cache: ${key}`);
+        logger.warn(`idempotency key found in cache: ${key} for request: ${req.originalUrl}`);
         const data = JSON.parse(cached);
         return responseBuilder.success(res, data);
     }

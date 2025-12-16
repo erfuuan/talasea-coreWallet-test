@@ -28,24 +28,30 @@ async function confirmBuyOrder(order) {
     wallet.lockedBalance = 0;
     wallet.balance = (wallet.balance || 0) - remainingToDeduct;
 
-    let asset = await Asset.findOne({
-        userId: order.userId,
-        productId: order.productId,
-    });
-
-    if (!asset) {
-        asset = await Asset.create({
+    // Use findOneAndUpdate with upsert to avoid race condition and duplicate key errors
+    // $inc will increment amount, and if asset doesn't exist, MongoDB will create it with amount = order.grams
+    // $setOnInsert only sets fields when creating new document
+    const asset = await Asset.findOneAndUpdate(
+        {
             userId: order.userId,
             productId: order.productId,
-            amount: 0,
-        });
-    }
-
-    asset.amount = (asset.amount || 0) + order.grams;
+        },
+        {
+            $inc: { amount: order.grams },
+            $setOnInsert: {
+                userId: order.userId,
+                productId: order.productId,
+                lockedAmount: 0,
+            }
+        },
+        {
+            upsert: true,
+            new: true,
+        }
+    );
 
     const balanceBefore = (wallet.balance || 0) + lockedAmount;
     await wallet.save();
-    await asset.save();
 
     const transactionType = product.type === CommodityType.GOLD
         ? TransactionType.BUY_GOLD_PHYSICAL
@@ -63,7 +69,7 @@ async function confirmBuyOrder(order) {
             totalPrice: totalPrice,
             balanceBefore: balanceBefore,
             balanceAfter: wallet.balance,
-            assetBefore: (asset.amount || 0) - order.grams,
+            assetBefore: asset.amount - order.grams,
             assetAfter: asset.amount,
         },
     });
@@ -82,25 +88,14 @@ async function confirmSellOrder(order) {
     const product = await Product.findById(order.productId);
     if (!product) throw new Error("Product not found");
 
-    const asset = await Asset.findOne({
-        userId: order.userId,
-        productId: order.productId,
-    });
-
-    if (!asset || (asset.amount || 0) < order.grams) {
-        throw new Error("Insufficient asset");
-    }
+    // Note: Asset was already deleted when the sell order was created in sellAsset()
+    // So we don't need to check or modify the asset here, just credit the wallet
 
     const totalPrice = order.totalPrice || (order.grams * order.pricePerUnit);
-
-    const assetBefore = asset.amount || 0;
-    asset.amount = assetBefore - order.grams;
-    asset.lockedAmount = Math.max(0, (asset.lockedAmount || 0) - order.grams);
 
     const balanceBefore = wallet.balance || 0;
     wallet.balance = balanceBefore + totalPrice;
 
-    await asset.save();
     await wallet.save();
 
     const transactionType = product.type === CommodityType.GOLD
@@ -119,8 +114,8 @@ async function confirmSellOrder(order) {
             totalPrice: totalPrice,
             balanceBefore: balanceBefore,
             balanceAfter: wallet.balance,
-            assetBefore: assetBefore,
-            assetAfter: asset.amount,
+            assetBefore: order.grams, // Asset was already deleted, so before was the order amount
+            assetAfter: 0, // Asset is now 0 since it was deleted
         },
     });
 
