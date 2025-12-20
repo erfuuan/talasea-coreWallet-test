@@ -29,6 +29,7 @@ export default class AssetService {
   async getAsset(userId) {
     const asset = await this.mongoService.findOneRecord(this.Asset, {
       userId,
+
     });
 
     if (!asset) {

@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL = "http://localhost:3000/api/v1";
 
 // ================== CONFIG ==================
-const ASSET_ID = "64f000000000000000000020";
+let ASSET_ID = null;
 const COMMODITY = "gold"; 
 
 const CONCURRENCY = 10; 
@@ -21,6 +21,7 @@ const client = axios.create({
 
 let authToken = null;
 let productIds = []; 
+let assetIds = []; 
 
 const logResult = (label, res) => {
   if (res.status >= 200 && res.status < 300) {
@@ -82,9 +83,45 @@ async function fetchProducts() {
   }
 }
 
-// ===================================================
-// ASSET BUY TEST (race condition on product + wallet)
-// ===================================================
+// Fetch assets function
+async function fetchAssets() {
+  console.log("\n💎 FETCHING ASSETS...");
+  try {
+    const response = await client.get("/asset", {
+      headers: {
+        "Authorization": authToken,
+        "Idempotency-Key": `fetch-assets-${Date.now()}`,
+      },
+    });
+
+    if (response.status === 200 && response.data?.data) {
+      const assets = Array.isArray(response.data.data) 
+        ? response.data.data 
+        : (response.data.data.assets || []);
+      
+      assetIds = assets
+        .filter(asset => asset._id)
+        .map(asset => asset._id);
+      
+      if (assetIds.length > 0) {
+        ASSET_ID = assetIds[0]; // Use first asset ID
+        console.log(`✅ FETCHED ${assetIds.length} ASSETS, using first one: ${ASSET_ID}`);
+      } else {
+        console.log("⚠️ No assets found. Asset sell test will be skipped.");
+      }
+      return assetIds;
+    } else {
+      console.log("⚠️ No assets found or failed to fetch. Asset sell test will be skipped.");
+      return [];
+    }
+  } catch (error) {
+    console.error("❌ FETCH ASSETS FAILED", error.message);
+    console.log("⚠️ Asset sell test will be skipped.");
+    return [];
+  }
+}
+
+
 async function testAssetBuyConcurrency() {
   console.log("\n🔥 ASSET BUY CONCURRENCY TEST");
 
@@ -112,30 +149,34 @@ async function testAssetBuyConcurrency() {
   results.forEach(r => logResult("BUY_ASSET", r));
 }
 
-// ===================================================
-// ASSET SELL TEST (redis lock + delete asset)
-// ===================================================
+
 async function testAssetSellConcurrency() {
   console.log("\n🔥 ASSET SELL CONCURRENCY TEST");
 
-  const requests = Array.from({ length: CONCURRENCY }).map((_, i) =>
-    client.post("/asset/sell", {
-      assetId: ASSET_ID,
+  if (!ASSET_ID || assetIds.length === 0) {
+    console.error("❌ No assets available. Please ensure you have assets before running sell test.");
+    return;
+  }
+
+  const requests = Array.from({ length: CONCURRENCY }).map((_, i) => {
+    // Use asset ID from fetched assets (cycle through them)
+    const assetId = assetIds[i % assetIds.length];
+    
+    return client.post("/asset/sell", {
+      assetId: assetId,
     }, {
       headers: {
         "Idempotency-Key": `sell-asset-${i}`,
         "Authorization": authToken,
       },
-    })
-  );
+    });
+  });
 
   const results = await Promise.all(requests);
   results.forEach(r => logResult("SELL_ASSET", r));
 }
 
-// ===================================================
-// ONLINE TRADE BUY (optimistic locking __v)
-// ===================================================
+
 async function testTradeBuyConcurrency() {
   console.log("\n🔥 TRADE BUY CONCURRENCY TEST");
 
@@ -155,9 +196,7 @@ async function testTradeBuyConcurrency() {
   results.forEach(r => logResult("BUY_TRADE", r));
 }
 
-// ===================================================
-// ONLINE TRADE SELL
-// ===================================================
+
 async function testTradeSellConcurrency() {
   console.log("\n🔥 TRADE SELL CONCURRENCY TEST");
 
@@ -176,9 +215,7 @@ async function testTradeSellConcurrency() {
   results.forEach(r => logResult("SELL_TRADE", r));
 }
 
-// ===================================================
-// WALLET WITHDRAW TEST (redis lock + optimistic locking)
-// ===================================================
+
 async function testWalletWithdrawConcurrency() {
   console.log("\n🔥 WALLET WITHDRAW CONCURRENCY TEST");
 
@@ -198,9 +235,7 @@ async function testWalletWithdrawConcurrency() {
   results.forEach(r => logResult("WITHDRAW", r));
 }
 
-// ===================================================
-// WALLET DEPOSIT TEST (redis lock + optimistic locking)
-// ===================================================
+
 async function testWalletDepositConcurrency() {
   console.log("\n🔥 WALLET DEPOSIT CONCURRENCY TEST");
 
@@ -229,6 +264,9 @@ async function testWalletDepositConcurrency() {
     
     // Fetch products to get real product IDs
     await fetchProducts();
+    
+    // Fetch assets to get real asset IDs
+    await fetchAssets();
     
     // Run all concurrency tests
     await testAssetBuyConcurrency();

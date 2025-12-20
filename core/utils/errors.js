@@ -20,4 +20,4 @@ export class AppError extends Error {
   export class UnauthorizedError extends AppError {
     constructor(msg) { super(msg, 401); }
   }
-  
+  ConflictError

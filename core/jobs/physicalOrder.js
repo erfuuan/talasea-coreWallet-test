@@ -28,27 +28,45 @@ async function confirmBuyOrder(order) {
     wallet.lockedBalance = 0;
     wallet.balance = (wallet.balance || 0) - remainingToDeduct;
 
-    // Use findOneAndUpdate with upsert to avoid race condition and duplicate key errors
-    // $inc will increment amount, and if asset doesn't exist, MongoDB will create it with amount = order.grams
-    // $setOnInsert only sets fields when creating new document
-    const asset = await Asset.findOneAndUpdate(
-        {
-            userId: order.userId,
-            productId: order.productId,
-        },
-        {
-            $inc: { amount: order.grams },
-            $setOnInsert: {
+   
+    let asset;
+    try {
+        asset = await Asset.findOneAndUpdate(
+            {
                 userId: order.userId,
                 productId: order.productId,
-                lockedAmount: 0,
+            },
+            {
+                $inc: { amount: order.grams },
+                $setOnInsert: {
+                    userId: order.userId,
+                    productId: order.productId,
+                    lockedAmount: 0,
+                }
+            },
+            {
+                upsert: true,
+                new: true,
             }
-        },
-        {
-            upsert: true,
-            new: true,
+        );
+    } catch (error) {
+        if (error.code === 11000) {
+            asset = await Asset.findOne({
+                userId: order.userId,
+                productId: order.productId,
+            });
+            if (asset) {
+                asset.amount = (asset.amount || 0) + order.grams;
+                await asset.save();
+            } else {
+                // Asset not found, this shouldn't happen but re-throw the error
+                logger.error("Duplicate key error but asset not found", { userId: order.userId, productId: order.productId });
+                throw error;
+            }
+        } else {
+            throw error;
         }
-    );
+    }
 
     const balanceBefore = (wallet.balance || 0) + lockedAmount;
     await wallet.save();
@@ -88,8 +106,7 @@ async function confirmSellOrder(order) {
     const product = await Product.findById(order.productId);
     if (!product) throw new Error("Product not found");
 
-    // Note: Asset was already deleted when the sell order was created in sellAsset()
-    // So we don't need to check or modify the asset here, just credit the wallet
+    
 
     const totalPrice = order.totalPrice || (order.grams * order.pricePerUnit);
 
@@ -114,8 +131,8 @@ async function confirmSellOrder(order) {
             totalPrice: totalPrice,
             balanceBefore: balanceBefore,
             balanceAfter: wallet.balance,
-            assetBefore: order.grams, // Asset was already deleted, so before was the order amount
-            assetAfter: 0, // Asset is now 0 since it was deleted
+            assetBefore: order.grams, 
+            assetAfter: 0, 
         },
     });
 
